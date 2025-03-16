@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Notes Project</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Мои заметки</h1>
+
+      <div class="new-note">
+        <textarea id="noteText" placeholder="Введите текст заметки"></textarea>
+        <button onclick="addNote()">Добавить заметку</button>
+      </div>
+
+      <ul id="notesList"></ul>
+    </div>
+
+    <script>
+      async function fetchNotes() {
+        const res = await fetch("/notes");
+        const notes = await res.json();
+        const notesList = document.getElementById("notesList");
+        notesList.innerHTML = "";
+
+        notes.forEach((note) => {
+          const li = document.createElement("li");
+          li.innerHTML = `${note.text} <button onclick="deleteNote('${note.id}')">Удалить</button>`;
+          notesList.appendChild(li);
+        });
+      }
+
+      async function addNote() {
+        const text = document.getElementById("noteText").value;
+        if (!text) return alert("Введите текст заметки.");
+
+        await fetch("/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        document.getElementById("noteText").value = "";
+        fetchNotes();
+      }
+
+      async function deleteNote(id) {
+        await fetch(`/notes/${id}`, { method: "DELETE" });
+        fetchNotes();
+      }
+
+      fetchNotes();
+    </script>
+  </body>
+</html>
